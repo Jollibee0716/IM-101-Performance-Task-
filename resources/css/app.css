@@ -78,7 +78,7 @@ section {
 .top-part {
   position: absolute;
   top: 10px;
-  right: 55%;
+  right: 50%;
   margin-top: 200px;
   font-size: 80px;
   font-weight: bold;
@@ -90,7 +90,7 @@ section {
 .bottom-part {
   position: absolute;
   bottom: 200px;
-  left: 55%;
+  left: 63%;
   font-size: 80px;
   font-weight: bold;
   color: orange;
@@ -100,7 +100,7 @@ section {
 .my-button {
   position: absolute;
   bottom: 100px;
-  left: 45%;
+  left: 50%;
   background-color: orange;
   color: white;
   font-size: 20px;
@@ -289,30 +289,63 @@ section {
 .img-center       { top: 50%; left: 50%; transform: translate(-50%, -50%); }
 
 /* ---------- Contact ---------- */
+#contact {
+  padding: 80px 40px;
+}
+ 
 #contact form {
   background: #ffffff;
-  padding: 40px;
+  padding: 60px 70px;
   border-radius: 20px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 10px rgba(0, 0, 0, 0.05);
   border: 1px solid rgba(0, 0, 0, 0.05);
-  margin-bottom: 30%;
+  width: 100%;
+  max-width: 1000px;      /* wide desktop form */
+  margin: 0 auto;
+  box-sizing: border-box;
 }
-
-#contact fieldset { border: 0; padding: 0; margin: 0; }
-#contact h3 { color: #1a1a1a; font-size: 28px; letter-spacing: -0.5px; margin-bottom: 8px; }
-#contact h4 { color: #6c757d; font-weight: 400; margin-bottom: 25px; }
-
+ 
+/* Two columns: short fields (name, email, phone...) sit side by side */
+#contact fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 30px;
+}
+ 
+/* Headings, long fields and the button take the full width */
+#contact fieldset > h3,
+#contact fieldset > h4,
+#contact fieldset > textarea,
+#contact fieldset > button {
+  grid-column: 1 / -1;
+}
+ 
+#contact h3 { color: #1a1a1a; font-size: 34px; letter-spacing: -0.5px; margin: 0 0 8px; }
+#contact h4 { color: #6c757d; font-weight: 400; font-size: 18px; margin: 0 0 35px; }
+ 
 #contact input,
 #contact textarea {
+  width: 100%;
+  box-sizing: border-box;
   background: var(--field-bg);
   border: 2px solid transparent;
-  padding: 14px 16px;
-  margin-bottom: 18px;
+  padding: 16px 18px;
+  margin-bottom: 22px;
   border-radius: var(--border-radius);
   color: #333;
+  font-size: 16px;
+  font-family: inherit;
   transition: all 0.25s ease;
 }
-
+ 
+#contact textarea {
+  min-height: 180px;
+  resize: vertical;
+}
+ 
 #contact input:focus,
 #contact textarea:focus {
   background: #fff;
@@ -320,27 +353,36 @@ section {
   box-shadow: 0 0 0 4px rgba(255, 153, 0, 0.15);
   outline: none;
 }
-
+ 
 #contact button[type="submit"] {
-  position: relative;
-  overflow: hidden;
+  justify-self: end;      /* button on the right; use "center" to center it */
+  min-width: 220px;
   background: var(--accent);
   color: #fff;
   font-weight: 700;
+  font-size: 16px;
   text-transform: uppercase;
   letter-spacing: 1px;
-  padding: 16px;
+  padding: 18px 40px;
   border: 0;
   border-radius: var(--border-radius);
   cursor: pointer;
   transition: transform 0.2s, background 0.3s;
-  left: 30%;
 }
-
+ 
 #contact button[type="submit"]:hover {
   background: var(--accent-hover);
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(255, 153, 0, 0.3);
 }
-
+ 
 #contact button[type="submit"]:active { transform: translateY(0); }
+ 
+/* Small screens: back to a single column */
+@media (max-width: 768px) {
+  #contact { padding: 60px 20px; }
+  #contact form { padding: 35px 25px; }
+  #contact fieldset { grid-template-columns: 1fr; }
+  #contact button[type="submit"] { justify-self: stretch; }
+}
+ 

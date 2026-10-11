@@ -28,7 +28,7 @@
       <div class="top-part">FIT</div>
       <div class="bottom-part">NESS</div>
       <img class="background-transition" src="{{ asset('images/web4.png') }}" alt="Fitness">
-      <button class="my-button" onclick="goToLogin()">Join Now</button>
+      <a href="{{ route('login') }}" class="my-button">Get Started</a>
     </div>
   </section>
 
@@ -54,7 +54,7 @@
 
       <h2>Our Vision</h2>
       <p>
-        Write your team's vision here. (This was a copy of "Why This Website?" in your original.)
+       As IT students, we know the "Developer Lifestyle" often leads to long hours at a desk. We developed this fitness website to bridge the gap between technology and health, providing a tool that helps people like us stay active while pursuing their professional goals.
       </p>
     </div>
   </section>
@@ -72,7 +72,7 @@
   <section id="contact">
     <div class="content-wrapper">
       <form id="contact-form" action="https://api.web3forms.com/submit" method="POST">
-        <input type="hidden" name="access_key" value="YOUR_NEW_WEB3FORMS_KEY">
+         <input type="hidden" name="access_key" value="32297720-e14b-4de1-baf9-26887653330c">
 
         <h3>Quick Contact</h3>
         <h4>Contact us today, and get a reply within 24 hours!</h4>

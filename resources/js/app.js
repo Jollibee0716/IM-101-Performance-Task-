@@ -5,7 +5,7 @@ function toggleMenu() {
 }
 
 function goToLogin() {
-  window.location.href = "/login";
+  window.location.href = "/log_in";
 }
 
 document.querySelectorAll("#menu a").forEach(link => {
