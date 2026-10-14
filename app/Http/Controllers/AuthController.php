@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
@@ -18,36 +19,92 @@ class AuthController extends Controller
     }
 
     public function register(Request $request)
-{
-    $validated = $request->validate([
-        'name' => 'required|string|max:255',
-        'email' => 'required|email|max:255|unique:users,email',
-        'password' => 'required|min:8|confirmed',
-        'role' => 'required|in:member,coach',
-        'gender' => 'required|in:Male,Female',   // <-- add this
-    ]);
+    {
+        $validated = $request->validate([
+            'name'           => 'required|string|max:255',
+            'email'          => 'required|email|max:255|unique:users,email',
+            'password'       => 'required|min:8|confirmed',
+            'role'           => 'required|in:member,coach',
+            'gender'         => 'required|in:Male,Female',
 
-    $status = $validated['role'] === 'coach' ? 'pending' : 'active';
+            // new personal details
+            'first_name'     => 'required|string|max:255',
+            'last_name'      => 'required|string|max:255',
+            'contact_number' => 'required|string|max:30',
+            'date_of_birth'  => 'required|date|before:today',
+            'address'        => 'required|string|max:255',
 
-    $user = User::create([
-        'name' => $validated['name'],
-        'email' => $validated['email'],
-        'password' => bcrypt($validated['password']),
-        'role' => $validated['role'],
-        'gender' => $validated['gender'],        // <-- add this
-        'status' => $status,
-    ]);
+            // member only
+            'emergency_contact_name'   => 'required_if:role,member|nullable|string|max:255',
+            'emergency_contact_number' => 'required_if:role,member|nullable|string|max:30',
+            'height_cm'                => 'nullable|numeric|min:0|max:999',
+            'weight_kg'                => 'nullable|numeric|min:0|max:999',
+            'fitness_goal'             => 'nullable|string|max:255',
 
-    if ($user->role === 'coach') {
-        return redirect()
-            ->route('login')
-            ->with('success', 'Coach account created. Waiting for admin approval.');
+            // coach only
+            'specialty'        => 'required_if:role,coach|nullable|string|max:255',
+            'certification'    => 'required_if:role,coach|nullable|string|max:255',
+            'years_experience' => 'nullable|integer|min:0|max:80',
+            'bio'              => 'nullable|string|max:2000',
+        ]);
+
+        $status = $validated['role'] === 'coach' ? 'pending' : 'active';
+
+        $user = DB::transaction(function () use ($validated, $status) {
+            $user = User::create([
+                'name'     => $validated['name'],
+                'email'    => $validated['email'],
+                'password' => bcrypt($validated['password']),
+                'role'     => $validated['role'],
+                'gender'   => $validated['gender'],
+                'status'   => $status,
+            ]);
+
+            $user->forceFill([
+                'first_name'     => $validated['first_name'],
+                'last_name'      => $validated['last_name'],
+                'contact_number' => $validated['contact_number'],
+                'date_of_birth'  => $validated['date_of_birth'],
+                'address'        => $validated['address'],
+            ])->save();
+
+            if ($validated['role'] === 'coach') {
+                DB::table('trainers')->insert([
+                    'user_id'          => $user->id,
+                    'specialty'        => $validated['specialty'] ?? null,
+                    'certification'    => $validated['certification'] ?? null,
+                    'years_experience' => (int) ($validated['years_experience'] ?? 0),
+                    'bio'              => $validated['bio'] ?? null,
+                    'created_at'       => now(),
+                    'updated_at'       => now(),
+                ]);
+            } else {
+                DB::table('members')->insert([
+                    'user_id'                  => $user->id,
+                    'emergency_contact_name'   => $validated['emergency_contact_name'] ?? null,
+                    'emergency_contact_number' => $validated['emergency_contact_number'] ?? null,
+                    'height_cm'                => $validated['height_cm'] ?? null,
+                    'weight_kg'                => $validated['weight_kg'] ?? null,
+                    'fitness_goal'             => $validated['fitness_goal'] ?? null,
+                    'join_date'                => now()->toDateString(),
+                    'created_at'               => now(),
+                    'updated_at'               => now(),
+                ]);
+            }
+
+            return $user;
+        });
+
+        if ($user->role === 'coach') {
+            return redirect()
+                ->route('login')
+                ->with('success', 'Coach account created. Waiting for admin approval.');
+        }
+
+        Auth::login($user);
+
+        return redirect()->route('dashboard');
     }
-
-    Auth::login($user);
-
-    return redirect()->route('dashboard');
-}
 
     public function login(Request $request)
     {
@@ -86,23 +143,23 @@ class AuthController extends Controller
         return view('forgot-password');
     }
 
-   public function sendResetLink(Request $request)
-{
-    $request->validate(['email' => 'required|email']);
+    public function sendResetLink(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
 
-    try {
-        $status = Password::sendResetLink($request->only('email'));
-    }catch (\Throwable $e) {
-    report($e);
-    return back()->withErrors(['email' => $e->getMessage()]);
-}
+        try {
+            $status = Password::sendResetLink($request->only('email'));
+        } catch (\Throwable $e) {
+            report($e);
+            return back()->withErrors(['email' => $e->getMessage()]);
+        }
 
-    if ($status === Password::RESET_LINK_SENT) {
-        return back()->with('success', 'Password reset link sent to your email.');
+        if ($status === Password::RESET_LINK_SENT) {
+            return back()->with('success', 'Password reset link sent to your email.');
+        }
+
+        return back()->withErrors(['email' => __($status)]);
     }
-
-    return back()->withErrors(['email' => __($status)]);
-}
 
     public function resetPassword(Request $request)
     {

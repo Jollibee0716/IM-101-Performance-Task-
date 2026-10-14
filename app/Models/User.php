@@ -19,13 +19,17 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-    'name',
-    'email',
-    'password',
-    'role',
-    'status',
-    'gender',
-];
+        'name',
+        'email',
+        'password',
+        'role',
+        'status',
+        'gender',
+        'phone',
+        'location',
+        'bio',
+        'last_login_at',
+    ];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -42,11 +46,27 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
-   protected function casts(): array
-{
-    return [
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed',
-    ];
-}
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'last_login_at'     => 'datetime',
+            'password'          => 'hashed',
+        ];
+    }
+
+    /** Initials shown in the avatar circle (e.g. "JD"). */
+    public function getInitialsAttribute(): string
+    {
+        return collect(preg_split('/\s+/', trim($this->name)))
+            ->filter()->take(2)
+            ->map(fn ($w) => mb_strtoupper(mb_substr($w, 0, 1)))
+            ->join('') ?: 'A';
+    }
+
+    /** First name used in "Welcome back, Admin John!". */
+    public function getFirstNameAttribute(): string
+    {
+        return explode(' ', trim($this->name))[0] ?? $this->name;
+    }
 }

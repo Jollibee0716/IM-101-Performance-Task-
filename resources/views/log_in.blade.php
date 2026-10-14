@@ -65,7 +65,15 @@ body:has(#register:target) #login{display:none}
 .field .roles label{display:flex;margin-bottom:0}
 .roles:has(#reg-female:checked)::before{transform:translateX(100%)}
 
-@media(max-width:480px){.card{padding:30px 22px 26px;border-radius:18px}}
+/* Extra register fields */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field input[type=date]{color-scheme:dark}
+.field textarea{width:100%;padding:14px 16px;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.12);border-radius:var(--radius);font:inherit;font-size:16px;color:inherit;resize:vertical}
+.coach-only{display:none}
+#register:has(#reg-coach:checked) .coach-only{display:block}
+#register:has(#reg-coach:checked) .member-only{display:none}
+
+@media(max-width:480px){.card{padding:30px 22px 26px;border-radius:18px}.grid2{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
 </head>
@@ -76,87 +84,64 @@ body:has(#register:target) #login{display:none}
             <p>{{ $error }}</p>
         @endforeach
     </div>
-@endif
+  @endif
 
-@if (session('success'))
+  @if (session('success'))
     <p>{{ session('success') }}</p>
-@endif
+  @endif
+
+<!-- ===================== LOGIN ===================== -->
 <main class="card view" id="login">
   <div class="brand">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>
-    Gym Portal
+    Fitness Portal
   </div>
   <h1>Member login</h1>
   <p class="sub">Track your workouts and book classes.</p>
 
-
-<form action="{{ route('login.submit') }}" method="POST">
+  <form action="{{ route('login.submit') }}" method="POST">
     @csrf
 
     <div class="roles" role="radiogroup" aria-label="Sign in as">
+      <input type="radio" name="role" id="role-user" value="member" checked>
+      <label for="role-user">Member</label>
 
-        <input type="radio" name="role" id="role-user" value="member" checked>
-        <label for="role-user">
-            Member
-        </label>
+      <input type="radio" name="role" id="role-coach" value="coach">
+      <label for="role-coach">Coach</label>
 
-        <input type="radio" name="role" id="role-coach" value="coach">
-        <label for="role-coach">
-            Coach
-        </label>
-
-        <input type="radio" name="role" id="role-admin" value="admin">
-        <label for="role-admin">
-            Admin
-        </label>
-
+      <input type="radio" name="role" id="role-admin" value="admin">
+      <label for="role-admin">Admin</label>
     </div>
 
     <div class="field">
-        <label for="username">Username or email</label>
-        <input type="email"
-               id="username"
-               name="email"
-               autocomplete="username"
-               autocapitalize="none"
-               spellcheck="false"
-               placeholder="you@example.com"
-               required>
+      <label for="username">Email</label>
+      <input type="email" id="username" name="email" autocomplete="username"
+             autocapitalize="none" spellcheck="false" placeholder="you@example.com" required>
     </div>
 
     <div class="field">
-        <label for="password">Password</label>
-        <input type="password"
-               id="password"
-               name="password"
-               autocomplete="current-password"
-               placeholder="Enter your password"
-               required>
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password"
+             autocomplete="current-password" placeholder="Enter your password" required>
     </div>
 
     <div class="row">
-        <label class="check">
-            <input type="checkbox" name="remember">
-            Remember me
-        </label>
-
-        <div class="row">
-            <a href="{{ route('password.request') }}">Forgot password?</a>
-        </div>
-
-
+      <label class="check">
+        <input type="checkbox" name="remember">
+        Remember me
+      </label>
+      <div class="row">
+        <a href="{{ route('password.request') }}">Forgot password?</a>
+      </div>
     </div>
 
-    <!-- SIGN IN BUTTON -->
     <button type="submit" class="btn">Sign in</button>
-
-</form>
-
-
+  </form>
 
   <p class="alt">New member? <a href="#register">Create account</a></p>
 </main>
 
+<!-- ===================== REGISTER ===================== -->
 <main class="card view" id="register">
   <a class="back" href="#login"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11H7.8l5.6-5.6L12 4l-8 8 8 8 1.4-1.4L7.8 13H20z"/></svg>Back to sign in</a>
 
@@ -169,19 +154,50 @@ body:has(#register:target) #login{display:none}
 
   <form action="{{ route('register') }}" method="POST">
     @csrf
+
     <div class="roles two" role="radiogroup" aria-label="Create account as">
-      <input type="radio" name="role" id="reg-user" value="member" checked>
+      <input type="radio" name="role" id="reg-user" value="member" {{ old('role', 'member') === 'member' ? 'checked' : '' }}>
       <label for="reg-user"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-4.4 0-8 2.2-8 5v3h16v-3c0-2.8-3.6-5-8-5z"/></svg>Member</label>
-      <input type="radio" name="role" id="reg-coach" value="coach">
+      <input type="radio" name="role" id="reg-coach" value="coach" {{ old('role') === 'coach' ? 'checked' : '' }}>
       <label for="reg-coach"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4h7v2h-2.2l-3 12H19v2H5v-2h3.2l3-12H9V4z"/></svg>Coach</label>
     </div>
+
     <div class="field">
       <label for="reg-name">Username</label>
-      <input type="text" id="reg-name" name="name" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="e.g. juan123">
+      <input type="text" id="reg-name" name="name" value="{{ old('name') }}" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="e.g. juan123">
     </div>
+
     <div class="field">
       <label for="reg-email">Email</label>
-      <input type="email" id="reg-email" name="email" autocomplete="email" placeholder="you@example.com">
+      <input type="email" id="reg-email" name="email" value="{{ old('email') }}" autocomplete="email" placeholder="you@example.com">
+    </div>
+
+    <!-- NEW: personal details -->
+    <div class="grid2">
+      <div class="field">
+        <label for="reg-first">First name</label>
+        <input type="text" id="reg-first" name="first_name" value="{{ old('first_name') }}" autocomplete="given-name">
+      </div>
+      <div class="field">
+        <label for="reg-last">Last name</label>
+        <input type="text" id="reg-last" name="last_name" value="{{ old('last_name') }}" autocomplete="family-name">
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="field">
+        <label for="reg-contact">Contact number</label>
+        <input type="text" id="reg-contact" name="contact_number" value="{{ old('contact_number') }}" autocomplete="tel">
+      </div>
+      <div class="field">
+        <label for="reg-dob">Date of birth</label>
+        <input type="date" id="reg-dob" name="date_of_birth" value="{{ old('date_of_birth') }}">
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="reg-address">Address</label>
+      <input type="text" id="reg-address" name="address" value="{{ old('address') }}" autocomplete="street-address">
     </div>
 
     <!-- GENDER -->
@@ -190,9 +206,54 @@ body:has(#register:target) #login{display:none}
       <div class="roles two" role="radiogroup" aria-labelledby="gender-label">
         <input type="radio" name="gender" id="reg-male" value="Male" {{ old('gender', 'Male') === 'Male' ? 'checked' : '' }}>
         <label for="reg-male">Male</label>
-
         <input type="radio" name="gender" id="reg-female" value="Female" {{ old('gender') === 'Female' ? 'checked' : '' }}>
         <label for="reg-female">Female</label>
+      </div>
+    </div>
+
+    <!-- NEW: member only -->
+    <div class="member-only">
+      <div class="field">
+        <label for="reg-ecn">Emergency contact name</label>
+        <input type="text" id="reg-ecn" name="emergency_contact_name" value="{{ old('emergency_contact_name') }}">
+      </div>
+      <div class="field">
+        <label for="reg-ecnum">Emergency contact number</label>
+        <input type="text" id="reg-ecnum" name="emergency_contact_number" value="{{ old('emergency_contact_number') }}">
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label for="reg-height">Height (cm)</label>
+          <input type="number" step="0.01" id="reg-height" name="height_cm" value="{{ old('height_cm') }}">
+        </div>
+        <div class="field">
+          <label for="reg-weight">Weight (kg)</label>
+          <input type="number" step="0.01" id="reg-weight" name="weight_kg" value="{{ old('weight_kg') }}">
+        </div>
+      </div>
+      <div class="field">
+        <label for="reg-goal">Fitness goal</label>
+        <input type="text" id="reg-goal" name="fitness_goal" value="{{ old('fitness_goal') }}">
+      </div>
+    </div>
+
+    <!-- NEW: coach only -->
+    <div class="coach-only">
+      <div class="field">
+        <label for="reg-spec">Specialty</label>
+        <input type="text" id="reg-spec" name="specialty" value="{{ old('specialty') }}">
+      </div>
+      <div class="field">
+        <label for="reg-cert">Certification</label>
+        <input type="text" id="reg-cert" name="certification" value="{{ old('certification') }}">
+      </div>
+      <div class="field">
+        <label for="reg-years">Years of experience</label>
+        <input type="number" min="0" id="reg-years" name="years_experience" value="{{ old('years_experience', 0) }}">
+      </div>
+      <div class="field">
+        <label for="reg-bio">Bio</label>
+        <textarea id="reg-bio" name="bio" rows="3">{{ old('bio') }}</textarea>
       </div>
     </div>
 
@@ -204,6 +265,7 @@ body:has(#register:target) #login{display:none}
       <label for="reg-pass2">Confirm password</label>
       <input type="password" id="reg-pass2" name="password_confirmation" autocomplete="new-password" placeholder="Repeat your password">
     </div>
+
     <button type="submit" class="btn">Create account</button>
   </form>
 
